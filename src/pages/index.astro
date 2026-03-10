@@ -1,134 +1,160 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { siteConfig } from "../config/site";
-import Hero from "../components/widgets/Hero.astro";
-import Features from "../components/widgets/Features.astro";
-import devImg from "../assets/images/dev_balanced.png";
-import openSourceImg from "../assets/images/open-source.png";
-import Content2 from "../components/widgets/Content2.astro";
+
 const metadata = {
-  title: `${siteConfig.name} — The next step for your project`,
+  title: "Tijdvermogen — Geld is opgeslagen levenstijd",
   description:
-    "A modern and professional template for your web projects with Astro and Tailwind CSS. Boost your development with a solid foundation.",
+    "Tijdvermogen helpt je via educatie, psychologie en filosofie bewuster omgaan met geld, je koopkracht beschermen en financiële keuzes maken die passen bij je leven.",
   ignoreTitleTemplate: true,
 };
+
+const pillars = [
+  {
+    title: "Educatie",
+    description:
+      "Heldere uitleg over geld, koopkracht, inflatie en vermogen — zonder jargon en zonder hype.",
+    icon: "📘",
+  },
+  {
+    title: "Psychologie",
+    description:
+      "Ontdek waarom emoties en impulsen je financiële keuzes sturen, en hoe je dat patroon doorbreekt.",
+    icon: "🧠",
+  },
+  {
+    title: "Filosofie",
+    description:
+      "Reflecteer over de vraag wat geld betekent voor een goed leven, en hoe het een middel blijft in plaats van een doel.",
+    icon: "⏳",
+  },
+];
 ---
 
 <BaseLayout {metadata}>
-  <Hero
-    title={`Starter Template for <br class="hidden md:block" /> <span class="bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Web Developers</span>`}
-    tagline="Astro v5 + Tailwind v4"
-    description={`${siteConfig.description}`}
-    actions={[
+  <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <p class="mb-4 text-sm uppercase tracking-[0.2em] text-primary">Tijdvermogen</p>
+    <h1 class="max-w-3xl font-serif text-4xl font-semibold leading-tight sm:text-5xl md:text-6xl">
+      Geld is opgeslagen levenstijd.
+    </h1>
+    <p class="mt-6 max-w-3xl text-lg text-muted-foreground">
+      Tijdvermogen helpt je begrijpen hoe geld, tijd en vrijheid met elkaar verbonden zijn.
+      Via educatie, psychologie en filosofie leer je bewuster omgaan met geld en je
+      koopkracht beschermen.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-4">
+      <a
+        href="/about"
+        class="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+      >Ontdek Tijdvermogen</a>
+      <a
+        href="#bewust-geld"
+        class="rounded-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted"
+      >Start met bewust omgaan met geld</a>
+    </div>
+  </section>
+
+  <section id="bewust-geld" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="rounded-3xl border border-border bg-card p-8 md:p-10">
+      <p class="mb-3 text-sm uppercase tracking-[0.18em] text-primary">Het probleem</p>
+      <h2 class="font-serif text-3xl font-semibold sm:text-4xl">
+        We denken dat geld over cijfers gaat. Maar eigenlijk gaat het over tijd.
+      </h2>
+      <p class="mt-4 max-w-4xl text-muted-foreground">
+        Elke euro vertegenwoordigt uren van ons leven — tijd die we gewerkt, geleerd of
+        gecreëerd hebben. Toch verliezen we die link vaak uit het oog.
+      </p>
+      <ul class="mt-6 grid gap-3 text-muted-foreground md:grid-cols-3">
+        <li class="rounded-2xl bg-muted p-4">We geven geld uit zonder de tijd erachter te voelen.</li>
+        <li class="rounded-2xl bg-muted p-4">We begrijpen inflatie en koopkracht vaak onvoldoende.</li>
+        <li class="rounded-2xl bg-muted p-4">Emoties en impulsen sturen te vaak onze keuzes.</li>
+      </ul>
+      <p class="mt-6 font-medium">Het gevolg: we verliezen langzaam controle over onze tijd.</p>
+    </div>
+  </section>
+
+  <section class="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:px-8">
+    <div class="rounded-3xl border border-border p-8">
+      <p class="mb-3 text-sm uppercase tracking-[0.18em] text-primary">De kern van Tijdvermogen</p>
+      <h2 class="font-serif text-3xl font-semibold sm:text-4xl">Geld is opgeslagen levenstijd.</h2>
+      <p class="mt-4 text-muted-foreground">
+        Wanneer je dat inzicht echt begrijpt, veranderen financiële keuzes vanzelf. Geld
+        wordt geen doel op zich, maar een instrument voor richting en vrijheid.
+      </p>
+      <ul class="mt-6 space-y-2 text-muted-foreground">
+        <li>• Bewuster consumeren</li>
+        <li>• Koopkracht beschermen</li>
+        <li>• Lange termijn belangrijker maken dan impulsen</li>
+        <li>• Geld inzetten als middel voor vrijheid</li>
+      </ul>
+    </div>
+
+    <div class="rounded-3xl border border-border bg-muted p-8">
+      <p class="mb-3 text-sm uppercase tracking-[0.18em] text-primary">Voor wie?</p>
+      <h2 class="font-serif text-3xl font-semibold sm:text-4xl">Voor mensen die hun tijd serieus nemen.</h2>
+      <ul class="mt-6 space-y-3 text-muted-foreground">
+        <li>• Je wil bewuster omgaan met geld.</li>
+        <li>• Je wil je koopkracht beschermen.</li>
+        <li>• Je wil minder financiële stress ervaren.</li>
+        <li>• Je begrijpt dat financiële keuzes levenskeuzes zijn.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <p class="mb-3 text-sm uppercase tracking-[0.18em] text-primary">Hoe Tijdvermogen helpt</p>
+    <h2 class="max-w-3xl font-serif text-3xl font-semibold sm:text-4xl">
+      Inzicht dat verder gaat dan cijfers.
+    </h2>
+    <div class="mt-8 grid gap-6 md:grid-cols-3">
       {
-        text: "Get Started",
-        href: "https://github.com/devgelo-labs/astro-starter-pro",
-        variant: "primary",
-        icon: "lucide:github",
-      },
-      {
-        text: "Our Services",
-        href: "/services",
-        variant: "secondary",
-        icon: "lucide:arrow-right",
-        ariaLabel: "Learn more about our services",
-      },
-    ]}
-  />
-  <Features
-    tagline="Features"
-    title="What's Included"
-    subtitle="A selection of tools and configurations to streamline your workflow."
-    features={[
-      {
-        title: "Optimized SEO",
-        description:
-          "Base configuration for Meta tags, Open Graph, and Sitemap generation.",
-        icon: "lucide:scan-search",
-        iconClass: "bg-blue-500/10 text-blue-400",
-      },
-      {
-        title: "High Performance",
-        description: "Lightweight structure for fast load times.",
-        icon: "lucide:zap",
-        iconClass: "bg-purple-500/10 text-purple-400",
-      },
-      {
-        title: "Tailwind v4",
-        description:
-          "Integrated configuration with the latest version of Tailwind CSS.",
-        icon: "lucide:palette",
-        iconClass: "bg-pink-500/10 text-pink-400",
-      },
-    ]}
-  />
-  <Content2
-    items={[
-      {
-        title: "Responsive Design",
-        description:
-          "Base configuration for Meta tags, Open Graph, and Sitemap generation.",
-        icon: "lucide:scan-search",
-        iconClass: "bg-blue-500/10 text-blue-400",
-      },
-      {
-        title: "High Performance",
-        description: "Lightweight structure for fast load times.",
-        icon: "lucide:zap",
-        iconClass: "bg-purple-500/10 text-purple-400",
-      },
-      {
-        title: "Tailwind v4",
-        description:
-          "Integrated configuration with the latest version of Tailwind CSS.",
-        icon: "lucide:palette",
-        iconClass: "bg-pink-500/10 text-pink-400",
-      },
-    ]}
-    image={devImg}
-    imageAlt="Development"
-  >
-    <Fragment>
-      <h3 class="text-2xl font-bold tracking-tight sm:text-3xl mb-2">
-        Development
-      </h3>
-      We provide a solid foundation to start your projects with best practices.
-    </Fragment>
-  </Content2>
-  <Content2
-    items={[
-      {
-        title: "Open Source",
-        description:
-          "Developed under the MIT license, free for personal and commercial use.",
-        icon: "lucide:github",
-        iconClass: "bg-indigo-500/10 text-indigo-400",
-      },
-      {
-        title: "Community Driven",
-        description:
-          "Built with the feedback and contributions of the developer community.",
-        icon: "lucide:users",
-        iconClass: "bg-orange-500/10 text-orange-400",
-      },
-      {
-        title: "Regular Updates",
-        description:
-          "Continuously improved with the latest technologies and best practices.",
-        icon: "lucide:refresh-cw",
-        iconClass: "bg-teal-500/10 text-teal-400",
-      },
-    ]}
-    image={openSourceImg}
-    imageAlt="Community and Open Source"
-    isReversed={true}
-  >
-    <Fragment>
-      <h3 class="text-2xl font-bold tracking-tight sm:text-3xl mb-2">
-        Open Source & Community
-      </h3>
-      Join the revolution of modern web development. This project is open for everyone
-      to use, learn from, and contribute to.
-    </Fragment>
-  </Content2>
+        pillars.map((pillar) => (
+          <article class="rounded-3xl border border-border bg-card p-6">
+            <p class="text-2xl">{pillar.icon}</p>
+            <h3 class="mt-4 text-xl font-semibold">{pillar.title}</h3>
+            <p class="mt-3 text-sm text-muted-foreground">{pillar.description}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="rounded-3xl border border-border p-8 md:p-10">
+      <p class="mb-3 text-sm uppercase tracking-[0.18em] text-primary">Resultaat</p>
+      <h2 class="font-serif text-3xl font-semibold sm:text-4xl">
+        Niet meer geld om meer geld. Wel meer rust, richting en vrijheid.
+      </h2>
+      <p class="mt-4 max-w-4xl text-muted-foreground">
+        Wanneer je geld anders leert bekijken, neem je betere beslissingen, ervaar je meer
+        rust en gebruik je geld bewuster om tijd en vrijheid te beschermen.
+      </p>
+      <ul class="mt-6 grid gap-3 text-muted-foreground md:grid-cols-3">
+        <li class="rounded-2xl bg-muted p-4">Betere financiële beslissingen</li>
+        <li class="rounded-2xl bg-muted p-4">Minder stress, meer mentale rust</li>
+        <li class="rounded-2xl bg-muted p-4">Meer vrijheid door heldere keuzes</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+    <div class="rounded-3xl bg-primary px-8 py-12 text-white">
+      <p class="text-sm uppercase tracking-[0.18em] text-white/80">Afsluiter</p>
+      <h2 class="mt-2 max-w-2xl font-serif text-3xl font-semibold sm:text-4xl">
+        Je tijd is je meest waardevolle vermogen.
+      </h2>
+      <p class="mt-4 max-w-2xl text-white/90">
+        Tijdvermogen helpt je dat vermogen beschermen. Omdat geld eigenlijk tijd is.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-4">
+        <a
+          href="/manifest"
+          class="rounded-full bg-white px-6 py-3 text-sm font-semibold text-primary transition hover:bg-white/90"
+        >Ontdek hoe</a>
+        <a
+          href="/about"
+          class="rounded-full border border-white/50 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+        >Lees het verhaal</a>
+      </div>
+    </div>
+  </section>
 </BaseLayout>

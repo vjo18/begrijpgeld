@@ -162,6 +162,20 @@ Your markdown or MDX content goes here...
 
 <br>
 
+
+## Deploy to GitHub Pages
+
+This repository now includes `.github/workflows/deploy.yml` to deploy automatically on every push to `main`.
+
+1. In GitHub, go to **Settings → Pages**.
+2. Under **Build and deployment**, select **Source: GitHub Actions**.
+3. Push to `main` (or run the workflow manually from the **Actions** tab).
+4. Your site will be published to `https://<github-username>.github.io/<repo-name>/`.
+
+> Note: Astro base path is configured automatically for GitHub Actions builds.
+
+<br>
+
 ## Commands
 
 | Command             | Action                                             |
