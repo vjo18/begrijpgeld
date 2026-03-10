@@ -14,8 +14,9 @@ const metadata = {
     <p class="mb-3 text-sm uppercase tracking-[0.18em] text-primary">Tools</p>
     <h1 class="font-serif text-4xl font-semibold sm:text-5xl">Financiële routekaart calculators</h1>
     <p class="mt-4 max-w-3xl text-muted-foreground">
-      Vier kernscenario's zijn nu geïntegreerd: <strong>wanneer je kan starten met passief inkomen</strong>
-      en <strong>welke combinatie van startkapitaal en maandelijkse inleg je nodig hebt</strong>.
+      Zes kernscenario's zijn geïntegreerd: van <strong>passief inkomen plannen</strong> en
+      <strong>inlegmix kiezen</strong> tot <strong>inflatie-impact</strong> en
+      <strong>tijd terugkopen via beleggen</strong>.
     </p>
   </section>
 
@@ -108,7 +109,7 @@ const metadata = {
 
       <div class="mt-6 grid gap-4 md:grid-cols-3">
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Nominaal nodig in de toekomst</p><p id="inf-kpi-nominaal" class="font-mono">—</p></div>
-        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Reële waarde van hetzelfde nominale bedrag</p><p id="inf-kpi-reeel" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Reële waarde van vast nominaal bedrag op horizon</p><p id="inf-kpi-reeel" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Cumulatieve inflatie</p><p id="inf-kpi-cum" class="font-mono">—</p></div>
       </div>
 
@@ -141,7 +142,7 @@ const metadata = {
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Kost op horizon</p><p id="work-kpi-kost" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Werkuren op horizon</p><p id="work-kpi-future" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Extra t.o.v. nu</p><p id="work-kpi-extra" class="font-mono">—</p></div>
-        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Equivalent in tijd</p><p id="work-kpi-equivalent" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Equivalent in tijd (extra + totaal)</p><p id="work-kpi-equivalent" class="font-mono">—</p></div>
       </div>
 
       <div class="mt-6 relative">
@@ -149,6 +150,86 @@ const metadata = {
         <div id="work-tooltip" class="pointer-events-none absolute hidden rounded-xl border border-border bg-background/95 px-3 py-2 text-xs shadow-lg"></div>
       </div>
       <p id="work-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
+    </article>
+
+    <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
+      <h2 class="font-serif text-3xl font-semibold">5) Tijd afbouwen richting pensioen</h2>
+      <p class="mt-2 text-muted-foreground">Toont wanneer je je werkregime kan terugschroeven naar 80/60/50/40/20/0% met belegd kapitaal, binnen je resterende loopbaan.</p>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <label class="text-sm">Netto maandwedde (€)<input id="ret-loon" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="2500" /></label>
+        <label class="text-sm">Werkuren per week<input id="ret-uren-week" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="38" /></label>
+        <label class="text-sm">Te beleggen deel van maandloon (%)<input id="ret-invest-pct" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="15" /></label>
+        <label class="text-sm">Eenmalig startbedrag (€)<input id="ret-start" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="10000" /></label>
+        <label class="text-sm">Beoogd rendement p.j. (%)<input id="ret-rend" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="5" /></label>
+        <label class="text-sm">Inflatie (%)<input id="ret-infl" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="text-sm">Jaren tot officieel pensioen<input id="ret-jaren-pensioen" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="25" min="1" /></label>
+        <label class="flex items-center gap-2 text-sm"><input id="ret-indexeer" type="checkbox" checked /> Indexeer inkomenskloof met inflatie</label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="ret-btn" class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white">Simuleer</button>
+        <button id="ret-reset" class="rounded-full border border-border px-5 py-2 text-sm font-semibold">Reset</button>
+      </div>
+
+      <div class="mt-6 overflow-x-auto rounded-2xl border border-border">
+        <table class="min-w-full text-sm">
+          <thead class="bg-muted text-left"><tr><th class="px-3 py-2">Doelregime</th><th class="px-3 py-2">Maandelijkse inkomenskloof</th><th class="px-3 py-2">Vroegste haalbaar binnen horizon</th><th class="px-3 py-2">Benodigd kapitaal (duurzaam)</th></tr></thead>
+          <tbody id="ret-tbody"><tr><td class="px-3 py-2 text-muted-foreground" colspan="4">Klik op simuleer.</td></tr></tbody>
+        </table>
+      </div>
+
+      <p class="mt-5 text-sm font-semibold text-foreground">Impact van verschillende belegpercentages (lijnengrafiek)</p>
+      <div class="mt-2 relative">
+        <canvas id="ret-sens-chart" class="h-72 w-full rounded-2xl border border-border bg-background"></canvas>
+        <div id="ret-sens-tooltip" class="pointer-events-none absolute hidden rounded-xl border border-border bg-background/95 px-3 py-2 text-xs shadow-lg"></div>
+      </div>
+
+      <p id="ret-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
+    </article>
+
+    <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
+      <h2 class="font-serif text-3xl font-semibold">6) Beleggen = tijd inkopen</h2>
+      <p class="mt-2 text-muted-foreground">Drukt je belegd kapitaal uit in werkuren, maanden en jaren om te tonen hoeveel tijd je kan terugkopen.</p>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <label class="text-sm">Netto maandwedde (€)<input id="time-loon" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="2500" /></label>
+        <label class="text-sm">Werkuren per week<input id="time-uren-week" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="38" /></label>
+        <label class="text-sm">Te beleggen deel van maandloon (%)<input id="time-invest-pct" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="15" /></label>
+        <label class="text-sm">Eenmalig startbedrag (€)<input id="time-start" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="10000" /></label>
+        <label class="text-sm">Beoogd rendement p.j. (%)<input id="time-rend" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="5" /></label>
+        <label class="text-sm">Inflatie (%)<input id="time-infl" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="text-sm">Tijdshorizon (jaren)<input id="time-jaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="20" min="1" /></label>
+        <label class="flex items-center gap-2 text-sm"><input id="time-indexeer" type="checkbox" checked /> Toon koopkracht in euro van vandaag</label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="time-btn" class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white">Simuleer</button>
+        <button id="time-reset" class="rounded-full border border-border px-5 py-2 text-sm font-semibold">Reset</button>
+      </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Totaal belegd bedrag</p><p id="time-kpi-invested-eur" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Belegd equivalent in werkuren</p><p id="time-kpi-invested-hours" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Belegd equivalent in werkmaanden</p><p id="time-kpi-invested-months" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Belegd equivalent in werkjaren</p><p id="time-kpi-invested-years" class="font-mono">—</p></div>
+      </div>
+
+      <div class="mt-4 grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon (euro)</p><p id="time-kpi-cap" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon in werkuren</p><p id="time-kpi-hours" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon in werkmaanden</p><p id="time-kpi-months" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon in werkjaren</p><p id="time-kpi-years" class="font-mono">—</p></div>
+      </div>
+
+      <div class="mt-4 grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst (euro)</p><p id="time-kpi-gain-eur" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst in werkuren</p><p id="time-kpi-gain-hours" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst in werkmaanden</p><p id="time-kpi-gain-months" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst in werkjaren</p><p id="time-kpi-gain-years" class="font-mono">—</p></div>
+      </div>
+
+      <p id="time-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
     </article>
 
   </section>
@@ -323,7 +404,7 @@ const metadata = {
       ctx.scale(dpr, dpr);
 
       const all = datasets.flatMap((d) => d.values);
-      let minY = Math.min(...all);
+      const minY = Math.min(...all);
       let maxY = Math.max(...all);
       if (minY === maxY) maxY = minY + 1;
 
@@ -395,22 +476,25 @@ const metadata = {
 
       const nominalNeeded = bedrag * Math.pow(1 + infl, jaren);
       const cumulativeInfl = (Math.pow(1 + infl, jaren) - 1) * 100;
+      const realValueAtHorizon = bedrag / Math.pow(1 + infl, jaren);
 
       el('inf-kpi-nominaal').textContent = formatEUR(nominalNeeded);
-      el('inf-kpi-reeel').textContent = formatEUR(bedrag);
+      el('inf-kpi-reeel').textContent = formatEUR(realValueAtHorizon);
       el('inf-kpi-cum').textContent = `${cumulativeInfl.toFixed(1)}%`;
-      el('inf-status').textContent = `Status: over ${jaren} jaar heb je ${formatEUR(nominalNeeded)} nodig om dezelfde koopkracht als ${formatEUR(bedrag)} vandaag te behouden.`;
+      el('inf-status').textContent = `Status: bij ${((infl || 0) * 100).toFixed(1)}% inflatie heb je over ${jaren} jaar ${formatEUR(nominalNeeded)} nodig; een vast nominaal bedrag van ${formatEUR(bedrag)} behoudt dan ${formatEUR(realValueAtHorizon)} koopkracht.`;
 
       const labels = Array.from({ length: jaren + 1 }, (_, i) => i);
-      const nominalSeries = labels.map((yr) => bedrag * Math.pow(1 + infl, yr));
-      const realSeries = labels.map(() => bedrag);
+      const fixedNominalSeries = labels.map(() => bedrag);
+      const nominalFutureSeries = labels.map((yr) => bedrag * Math.pow(1 + infl, yr));
+      const realSeries = labels.map((yr) => bedrag / Math.pow(1 + infl, yr));
       drawLineChart({
         canvasId: 'inf-chart',
         tooltipId: 'inf-tooltip',
         labels,
         datasets: [
-          { label: 'Nominaal nodig', values: nominalSeries, color: '#3b82f6' },
-          { label: 'Reële koopkracht vandaag', values: realSeries, color: '#22c55e' },
+          { label: 'Vast nominaal bedrag', values: fixedNominalSeries, color: '#3b82f6' },
+          { label: 'Nominaal bedrag in toekomst', values: nominalFutureSeries, color: '#f97316' },
+          { label: 'Reële koopkracht in toekomst', values: realSeries, color: '#22c55e' },
         ],
         formatValue: (v) => formatEUR(v),
       });
@@ -430,14 +514,17 @@ const metadata = {
       const hoursNow = kostVandaag / uurloonNu;
       const hoursFuture = futureCost / Math.max(0.0001, futureHourlyWage);
       const extraHours = hoursFuture - hoursNow;
-      const monthsEquivalent = hoursFuture / (urenPerWeek * 52 / 12);
-      const yearsEquivalent = hoursFuture / (urenPerWeek * 52);
+      const monthlyHours = urenPerWeek * 52 / 12;
+      const monthsExtra = extraHours / monthlyHours;
+      const yearsExtra = extraHours / (urenPerWeek * 52);
+      const monthsTotal = hoursFuture / monthlyHours;
+      const yearsTotal = hoursFuture / (urenPerWeek * 52);
 
       el('work-kpi-kost').textContent = formatEUR(futureCost);
       el('work-kpi-future').textContent = `${hoursFuture.toFixed(0)} u`;
       el('work-kpi-extra').textContent = `${extraHours.toFixed(0)} u`;
-      el('work-kpi-equivalent').textContent = `${monthsEquivalent.toFixed(1)} mnd · ${yearsEquivalent.toFixed(1)} jr`;
-      el('work-status').textContent = `Status: op horizon vraagt het doel ${hoursFuture.toFixed(0)} werkuren (${monthsEquivalent.toFixed(1)} maanden / ${yearsEquivalent.toFixed(1)} jaar werken aan dit tempo).`;
+      el('work-kpi-equivalent').textContent = `extra: ${monthsExtra.toFixed(1)} mnd · ${yearsExtra.toFixed(1)} jr | totaal: ${monthsTotal.toFixed(1)} mnd · ${yearsTotal.toFixed(1)} jr`;
+      el('work-status').textContent = `Status: extra impact = ${extraHours.toFixed(0)} u (${monthsExtra.toFixed(1)} maanden / ${yearsExtra.toFixed(1)} jaar). Totaal op horizon: ${hoursFuture.toFixed(0)} u.`;
 
       const labels = Array.from({ length: jaren + 1 }, (_, i) => i);
       const hoursSeries = labels.map((yr) => {
@@ -446,16 +533,169 @@ const metadata = {
         return c / Math.max(0.0001, w);
       });
       const baselineSeries = labels.map(() => hoursNow);
+      const extraSeries = labels.map((_, i) => Math.max(0, hoursSeries[i] - hoursNow));
       drawLineChart({
         canvasId: 'work-chart',
         tooltipId: 'work-tooltip',
         labels,
         datasets: [
-          { label: 'Werkuren nodig', values: hoursSeries, color: '#f97316' },
+          { label: 'Werkuren nodig (totaal)', values: hoursSeries, color: '#f97316' },
           { label: 'Werkuren nu (baseline)', values: baselineSeries, color: '#8b5cf6' },
+          { label: 'Extra werkuren', values: extraSeries, color: '#ef4444' },
         ],
         formatValue: (v) => `${Math.round(v).toLocaleString('nl-BE')} u`,
       });
+    }
+
+    function futureValueFromPlan({ startCapital, monthlyContribution, annualReturnPct, years }) {
+      const months = Math.max(1, Math.round(years * 12));
+      const rM = monthlyRate(annualReturnPct);
+      let capital = Math.max(0, startCapital);
+      for (let m = 0; m < months; m++) {
+        capital = capital * (1 + rM) + Math.max(0, monthlyContribution);
+      }
+      return capital;
+    }
+
+    function yearsToReachCapital({ targetCapital, startCapital, monthlyContribution, annualReturnPct, maxYears }) {
+      if (targetCapital <= Math.max(0, startCapital)) return 0;
+      const months = Math.max(1, Math.round(maxYears * 12));
+      const rM = monthlyRate(annualReturnPct);
+      let capital = Math.max(0, startCapital);
+      for (let m = 1; m <= months; m++) {
+        capital = capital * (1 + rM) + Math.max(0, monthlyContribution);
+        if (capital >= targetCapital) return m / 12;
+      }
+      return null;
+    }
+
+    function runRetirementScaleDown() {
+      const nettoLoon = Number(el('ret-loon').value || 0);
+      const urenPerWeek = Number(el('ret-uren-week').value || 1);
+      const investPct = Number(el('ret-invest-pct').value || 0) / 100;
+      const startCapital = Number(el('ret-start').value || 0);
+      const annualReturnPct = Number(el('ret-rend').value || 0);
+      const inflationPct = Number(el('ret-infl').value || 0);
+      const yearsToPension = Math.max(1, Number(el('ret-jaren-pensioen').value || 1));
+      const indexToInflation = el('ret-indexeer').checked;
+
+      const monthlyInvest = Math.max(0, nettoLoon * investPct);
+      const nominalMonthlyRate = monthlyRate(annualReturnPct);
+      const realMonthlyRate = (1 + nominalMonthlyRate) / (1 + monthlyInflationRate(inflationPct)) - 1;
+      const sustainableMonthlyRate = indexToInflation ? realMonthlyRate : nominalMonthlyRate;
+      const targets = [0.8, 0.6, 0.5, 0.4, 0.2, 0.0];
+      const tbody = el('ret-tbody');
+      tbody.innerHTML = '';
+
+      targets.forEach((ratio) => {
+        const incomeGap = nettoLoon * (1 - ratio);
+        const requiredCapital = sustainableMonthlyRate > 0 ? incomeGap / sustainableMonthlyRate : Number.POSITIVE_INFINITY;
+        const yearsNeeded = Number.isFinite(requiredCapital)
+          ? yearsToReachCapital({
+              targetCapital: requiredCapital,
+              startCapital,
+              monthlyContribution: monthlyInvest,
+              annualReturnPct,
+              maxYears: yearsToPension,
+            })
+          : null;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-3 py-2">${Math.round(ratio * 100)}%</td><td class="px-3 py-2">${formatEUR(incomeGap)}/mnd</td><td class="px-3 py-2">${yearsNeeded === null ? 'Niet haalbaar' : `${yearsNeeded.toFixed(1)} jaar`}</td><td class="px-3 py-2">${Number.isFinite(requiredCapital) ? formatEUR(requiredCapital) : 'Niet duurzaam (reëel rendement ≤ 0%)'}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      const sensitivityPcts = Array.from(new Set([
+        Math.max(1, Math.round(investPct * 100 - 5)),
+        Math.max(1, Math.round(investPct * 100)),
+        Math.max(1, Math.round(investPct * 100 + 5)),
+        Math.max(1, Math.round(investPct * 100 + 10)),
+      ])).sort((a, b) => a - b);
+      const regimeLabels = [80, 60, 50, 40, 20, 0];
+      const colors = ['#3b82f6', '#ef4444', '#14b8a6', '#8b5cf6', '#f97316', '#22c55e'];
+      const datasets = sensitivityPcts.map((pct, idx) => {
+        const monthly = nettoLoon * (pct / 100);
+        const values = targets.map((ratio) => {
+          const required = sustainableMonthlyRate > 0 ? (nettoLoon * (1 - ratio)) / sustainableMonthlyRate : Number.POSITIVE_INFINITY;
+          const y = Number.isFinite(required)
+            ? yearsToReachCapital({
+                targetCapital: required,
+                startCapital,
+                monthlyContribution: monthly,
+                annualReturnPct,
+                maxYears: yearsToPension,
+              })
+            : null;
+          return y === null ? yearsToPension : y;
+        });
+        return {
+          label: `${pct}% beleggen`,
+          values,
+          color: colors[idx % colors.length],
+        };
+      });
+
+      drawLineChart({
+        canvasId: 'ret-sens-chart',
+        tooltipId: 'ret-sens-tooltip',
+        labels: regimeLabels,
+        datasets,
+        formatValue: (v) => `${v.toFixed(1)} jr`,
+      });
+
+      const lifeMode = indexToInflation ? 'geïndexeerde inkomenskloof' : 'niet-geïndexeerde inkomenskloof';
+      const sustainability = sustainableMonthlyRate > 0
+        ? `Duurzaamheid is berekend als eeuwigdurende opname met ${(sustainableMonthlyRate * 100).toFixed(3)}% maandrendement.`
+        : 'Niet duurzaam bij deze combinatie van rendement en inflatie (reëel rendement ≤ 0%).';
+      const urenPerMaand = urenPerWeek * 52 / 12;
+      el('ret-status').textContent = `Status: ${formatEUR(monthlyInvest)}/mnd beleggen (${(investPct * 100).toFixed(1)}%), ${lifeMode}, ${urenPerMaand.toFixed(0)} u/maand huidig tempo. ${sustainability}`;
+    }
+
+    function runBuyTime() {
+      const nettoLoon = Number(el('time-loon').value || 0);
+      const urenPerWeek = Number(el('time-uren-week').value || 1);
+      const investPct = Number(el('time-invest-pct').value || 0) / 100;
+      const startCapital = Number(el('time-start').value || 0);
+      const annualReturnPct = Number(el('time-rend').value || 0);
+      const inflationPct = Number(el('time-infl').value || 0);
+      const jaren = Math.max(1, Number(el('time-jaren').value || 1));
+      const showRealValue = el('time-indexeer').checked;
+
+      const monthlyInvest = Math.max(0, nettoLoon * investPct);
+      const months = Math.max(1, Math.round(jaren * 12));
+      const investedFromSalary = monthlyInvest * months;
+      const totalInvested = Math.max(0, startCapital) + investedFromSalary;
+
+      const nominalCap = futureValueFromPlan({ startCapital, monthlyContribution: monthlyInvest, annualReturnPct, years: jaren });
+      const deflator = Math.pow(1 + inflationPct / 100, jaren);
+      const cap = showRealValue ? nominalCap / Math.max(0.0001, deflator) : nominalCap;
+      const uurloonNu = (nettoLoon * 12) / Math.max(1, urenPerWeek * 52);
+
+      const investedHours = totalInvested / Math.max(0.0001, uurloonNu);
+      const investedMonths = investedHours / (urenPerWeek * 52 / 12);
+      const investedYears = investedHours / (urenPerWeek * 52);
+
+      const hoursEquivalent = cap / Math.max(0.0001, uurloonNu);
+      const monthsEquivalent = hoursEquivalent / (urenPerWeek * 52 / 12);
+      const yearsEquivalent = hoursEquivalent / (urenPerWeek * 52);
+      const gainEur = cap - totalInvested;
+      const gainHours = hoursEquivalent - investedHours;
+      const gainMonths = monthsEquivalent - investedMonths;
+      const gainYears = yearsEquivalent - investedYears;
+
+      el('time-kpi-invested-eur').textContent = formatEUR(totalInvested);
+      el('time-kpi-invested-hours').textContent = `${Math.round(investedHours).toLocaleString('nl-BE')} u`;
+      el('time-kpi-invested-months').textContent = `${investedMonths.toFixed(1)} mnd`;
+      el('time-kpi-invested-years').textContent = `${investedYears.toFixed(1)} jr`;
+
+      el('time-kpi-cap').textContent = formatEUR(cap);
+      el('time-kpi-hours').textContent = `${Math.round(hoursEquivalent).toLocaleString('nl-BE')} u`;
+      el('time-kpi-months').textContent = `${monthsEquivalent.toFixed(1)} mnd`;
+      el('time-kpi-years').textContent = `${yearsEquivalent.toFixed(1)} jr`;
+      el('time-kpi-gain-eur').textContent = formatEUR(gainEur);
+      el('time-kpi-gain-hours').textContent = `${Math.round(gainHours).toLocaleString('nl-BE')} u`;
+      el('time-kpi-gain-months').textContent = `${gainMonths.toFixed(1)} mnd`;
+      el('time-kpi-gain-years').textContent = `${gainYears.toFixed(1)} jr`;
+      el('time-status').textContent = `Status: je belegt ${formatEUR(monthlyInvest)}/mnd (${(investPct * 100).toFixed(1)}%), in totaal ${formatEUR(totalInvested)} (${Math.round(investedHours).toLocaleString('nl-BE')} u). Dat groeit naar ${formatEUR(cap)} of ${Math.round(hoursEquivalent).toLocaleString('nl-BE')} u op horizon (${showRealValue ? 'koopkracht van vandaag' : 'nominale waarde'}). Netto winst: ${formatEUR(gainEur)} (${Math.round(gainHours).toLocaleString('nl-BE')} u).`;
     }
 
     el('tv-btnBereken')?.addEventListener('click', runMain);
@@ -463,6 +703,8 @@ const metadata = {
 
     el('inf-btn')?.addEventListener('click', runInflationReality);
     el('work-btn')?.addEventListener('click', runWorkHoursImpact);
+    el('ret-btn')?.addEventListener('click', runRetirementScaleDown);
+    el('time-btn')?.addEventListener('click', runBuyTime);
 
     el('tv-btnReset')?.addEventListener('click', () => {
       el('tv-startKapitaal').value = 25000;
@@ -492,6 +734,30 @@ const metadata = {
       runWorkHoursImpact();
     });
 
+    el('ret-reset')?.addEventListener('click', () => {
+      el('ret-loon').value = 2500;
+      el('ret-uren-week').value = 38;
+      el('ret-invest-pct').value = 15;
+      el('ret-start').value = 10000;
+      el('ret-rend').value = 5;
+      el('ret-infl').value = 2;
+      el('ret-indexeer').checked = true;
+      el('ret-jaren-pensioen').value = 25;
+      runRetirementScaleDown();
+    });
+
+    el('time-reset')?.addEventListener('click', () => {
+      el('time-loon').value = 2500;
+      el('time-uren-week').value = 38;
+      el('time-invest-pct').value = 15;
+      el('time-start').value = 10000;
+      el('time-rend').value = 5;
+      el('time-infl').value = 2;
+      el('time-indexeer').checked = true;
+      el('time-jaren').value = 20;
+      runBuyTime();
+    });
+
     el('mix-btnReset')?.addEventListener('click', () => {
       el('mix-startNaJaren').value = 10;
       el('mix-duurJaren').value = 30;
@@ -503,5 +769,12 @@ const metadata = {
       el('mix-stappen').value = 11;
       runMix();
     });
+
+    runMain();
+    runMix();
+    runInflationReality();
+    runWorkHoursImpact();
+    runRetirementScaleDown();
+    runBuyTime();
   </script>
 </BaseLayout>
