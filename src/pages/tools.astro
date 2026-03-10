@@ -154,7 +154,7 @@ const metadata = {
 
     <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
       <h2 class="font-serif text-3xl font-semibold">5) Tijd afbouwen richting pensioen</h2>
-      <p class="mt-2 text-muted-foreground">Toont wanneer je je werkregime kan terugschroeven naar 80/60/50/40/20% met belegd kapitaal, binnen je resterende loopbaan.</p>
+      <p class="mt-2 text-muted-foreground">Toont wanneer je je werkregime kan terugschroeven naar 80/60/50/40/20/0% met belegd kapitaal, binnen je resterende loopbaan.</p>
 
       <div class="mt-6 grid gap-4 md:grid-cols-3">
         <label class="text-sm">Netto maandwedde (€)<input id="ret-loon" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="2500" /></label>
@@ -162,7 +162,9 @@ const metadata = {
         <label class="text-sm">Te beleggen deel van maandloon (%)<input id="ret-invest-pct" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="15" /></label>
         <label class="text-sm">Eenmalig startbedrag (€)<input id="ret-start" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="10000" /></label>
         <label class="text-sm">Beoogd rendement p.j. (%)<input id="ret-rend" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="5" /></label>
+        <label class="text-sm">Inflatie (%)<input id="ret-infl" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
         <label class="text-sm">Jaren tot officieel pensioen<input id="ret-jaren-pensioen" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="25" min="1" /></label>
+        <label class="flex items-center gap-2 text-sm"><input id="ret-indexeer" type="checkbox" checked /> Indexeer inkomenskloof met inflatie</label>
       </div>
 
       <div class="mt-4 flex flex-wrap gap-3">
@@ -172,17 +174,15 @@ const metadata = {
 
       <div class="mt-6 overflow-x-auto rounded-2xl border border-border">
         <table class="min-w-full text-sm">
-          <thead class="bg-muted text-left"><tr><th class="px-3 py-2">Doelregime</th><th class="px-3 py-2">Maandelijkse inkomenskloof</th><th class="px-3 py-2">Vroegste haalbaar binnen horizon</th><th class="px-3 py-2">Benodigd kapitaal op switchmoment</th></tr></thead>
+          <thead class="bg-muted text-left"><tr><th class="px-3 py-2">Doelregime</th><th class="px-3 py-2">Maandelijkse inkomenskloof</th><th class="px-3 py-2">Vroegste haalbaar binnen horizon</th><th class="px-3 py-2">Benodigd kapitaal (duurzaam)</th></tr></thead>
           <tbody id="ret-tbody"><tr><td class="px-3 py-2 text-muted-foreground" colspan="4">Klik op simuleer.</td></tr></tbody>
         </table>
       </div>
 
-      <p class="mt-5 text-sm font-semibold text-foreground">Impact van verschillende belegpercentages</p>
-      <div class="mt-2 overflow-x-auto rounded-2xl border border-border">
-        <table class="min-w-full text-sm">
-          <thead class="bg-muted text-left"><tr><th class="px-3 py-2">Beleg %</th><th class="px-3 py-2">80%</th><th class="px-3 py-2">60%</th><th class="px-3 py-2">50%</th><th class="px-3 py-2">40%</th><th class="px-3 py-2">20%</th></tr></thead>
-          <tbody id="ret-sens-body"><tr><td class="px-3 py-2 text-muted-foreground" colspan="6">Klik op simuleer.</td></tr></tbody>
-        </table>
+      <p class="mt-5 text-sm font-semibold text-foreground">Impact van verschillende belegpercentages (lijnengrafiek)</p>
+      <div class="mt-2 relative">
+        <canvas id="ret-sens-chart" class="h-72 w-full rounded-2xl border border-border bg-background"></canvas>
+        <div id="ret-sens-tooltip" class="pointer-events-none absolute hidden rounded-xl border border-border bg-background/95 px-3 py-2 text-xs shadow-lg"></div>
       </div>
 
       <p id="ret-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
@@ -198,7 +198,9 @@ const metadata = {
         <label class="text-sm">Te beleggen deel van maandloon (%)<input id="time-invest-pct" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="15" /></label>
         <label class="text-sm">Eenmalig startbedrag (€)<input id="time-start" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="10000" /></label>
         <label class="text-sm">Beoogd rendement p.j. (%)<input id="time-rend" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="5" /></label>
+        <label class="text-sm">Inflatie (%)<input id="time-infl" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
         <label class="text-sm">Tijdshorizon (jaren)<input id="time-jaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="20" min="1" /></label>
+        <label class="flex items-center gap-2 text-sm"><input id="time-indexeer" type="checkbox" checked /> Toon koopkracht in euro van vandaag</label>
       </div>
 
       <div class="mt-4 flex flex-wrap gap-3">
@@ -224,7 +226,6 @@ const metadata = {
     const monthlyRate = (annualPct) => Math.pow(1 + annualPct / 100, 1 / 12) - 1;
     const monthlyInflationRate = (inflPct) => Math.pow(1 + inflPct / 100, 1 / 12) - 1;
     const uplift = (todayAmount, startMonth, indexToInflation, inflationPct) => indexToInflation ? todayAmount * Math.pow(1 + monthlyInflationRate(inflationPct), startMonth) : todayAmount;
-    const formatYearsOrDash = (n) => (Number.isFinite(n) ? `${n.toFixed(1)} jr` : '—');
 
     function simulate({ initialCapital, monthlyContribution, annualReturnPct, startWithdrawMonth, withdrawalPerMonthToday, withdrawalYears, indexToInflation, inflationPct, minEndCapital }) {
       const rM = monthlyRate(annualReturnPct);
@@ -466,18 +467,20 @@ const metadata = {
       el('inf-kpi-nominaal').textContent = formatEUR(nominalNeeded);
       el('inf-kpi-reeel').textContent = formatEUR(realValueAtHorizon);
       el('inf-kpi-cum').textContent = `${cumulativeInfl.toFixed(1)}%`;
-      el('inf-status').textContent = `Status: ${formatEUR(bedrag)} nominaal heeft over ${jaren} jaar nog een koopkracht van ${formatEUR(realValueAtHorizon)} bij ${((infl || 0) * 100).toFixed(1)}% inflatie.`;
+      el('inf-status').textContent = `Status: bij ${((infl || 0) * 100).toFixed(1)}% inflatie heb je over ${jaren} jaar ${formatEUR(nominalNeeded)} nodig; een vast nominaal bedrag van ${formatEUR(bedrag)} behoudt dan ${formatEUR(realValueAtHorizon)} koopkracht.`;
 
       const labels = Array.from({ length: jaren + 1 }, (_, i) => i);
-      const nominalSeries = labels.map(() => bedrag);
+      const fixedNominalSeries = labels.map(() => bedrag);
+      const nominalFutureSeries = labels.map((yr) => bedrag * Math.pow(1 + infl, yr));
       const realSeries = labels.map((yr) => bedrag / Math.pow(1 + infl, yr));
       drawLineChart({
         canvasId: 'inf-chart',
         tooltipId: 'inf-tooltip',
         labels,
         datasets: [
-          { label: 'Vast nominaal bedrag', values: nominalSeries, color: '#3b82f6' },
-          { label: 'Reële koopkracht van dat bedrag', values: realSeries, color: '#22c55e' },
+          { label: 'Vast nominaal bedrag', values: fixedNominalSeries, color: '#3b82f6' },
+          { label: 'Nominaal bedrag in toekomst', values: nominalFutureSeries, color: '#f97316' },
+          { label: 'Reële koopkracht in toekomst', values: realSeries, color: '#22c55e' },
         ],
         formatValue: (v) => formatEUR(v),
       });
@@ -554,54 +557,83 @@ const metadata = {
 
     function runRetirementScaleDown() {
       const nettoLoon = Number(el('ret-loon').value || 0);
+      const urenPerWeek = Number(el('ret-uren-week').value || 1);
       const investPct = Number(el('ret-invest-pct').value || 0) / 100;
       const startCapital = Number(el('ret-start').value || 0);
       const annualReturnPct = Number(el('ret-rend').value || 0);
+      const inflationPct = Number(el('ret-infl').value || 0);
       const yearsToPension = Math.max(1, Number(el('ret-jaren-pensioen').value || 1));
+      const indexToInflation = el('ret-indexeer').checked;
 
       const monthlyInvest = Math.max(0, nettoLoon * investPct);
-      const safeMonthlyRate = Math.max(0.0001, annualReturnPct / 100 / 12);
-      const targets = [0.8, 0.6, 0.5, 0.4, 0.2];
+      const nominalMonthlyRate = monthlyRate(annualReturnPct);
+      const realMonthlyRate = (1 + nominalMonthlyRate) / (1 + monthlyInflationRate(inflationPct)) - 1;
+      const sustainableMonthlyRate = indexToInflation ? realMonthlyRate : nominalMonthlyRate;
+      const targets = [0.8, 0.6, 0.5, 0.4, 0.2, 0.0];
       const tbody = el('ret-tbody');
       tbody.innerHTML = '';
 
       targets.forEach((ratio) => {
         const incomeGap = nettoLoon * (1 - ratio);
-        const requiredCapital = incomeGap / safeMonthlyRate;
-        const yearsNeeded = yearsToReachCapital({
-          targetCapital: requiredCapital,
-          startCapital,
-          monthlyContribution: monthlyInvest,
-          annualReturnPct,
-          maxYears: yearsToPension,
-        });
+        const requiredCapital = sustainableMonthlyRate > 0 ? incomeGap / sustainableMonthlyRate : Number.POSITIVE_INFINITY;
+        const yearsNeeded = Number.isFinite(requiredCapital)
+          ? yearsToReachCapital({
+              targetCapital: requiredCapital,
+              startCapital,
+              monthlyContribution: monthlyInvest,
+              annualReturnPct,
+              maxYears: yearsToPension,
+            })
+          : null;
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="px-3 py-2">${Math.round(ratio * 100)}%</td><td class="px-3 py-2">${formatEUR(incomeGap)}/mnd</td><td class="px-3 py-2">${yearsNeeded === null ? 'Niet haalbaar' : `${yearsNeeded.toFixed(1)} jaar`}</td><td class="px-3 py-2">${formatEUR(requiredCapital)}</td>`;
+        tr.innerHTML = `<td class="px-3 py-2">${Math.round(ratio * 100)}%</td><td class="px-3 py-2">${formatEUR(incomeGap)}/mnd</td><td class="px-3 py-2">${yearsNeeded === null ? 'Niet haalbaar' : `${yearsNeeded.toFixed(1)} jaar`}</td><td class="px-3 py-2">${Number.isFinite(requiredCapital) ? formatEUR(requiredCapital) : 'Niet duurzaam (reëel rendement ≤ 0%)'}</td>`;
         tbody.appendChild(tr);
       });
 
-      const sensitivityPcts = Array.from(new Set([Math.max(1, Math.round(investPct * 100 - 5)), Math.max(1, Math.round(investPct * 100)), Math.max(1, Math.round(investPct * 100 + 5)), Math.max(1, Math.round(investPct * 100 + 10))])).sort((a, b) => a - b);
-      const sensBody = el('ret-sens-body');
-      sensBody.innerHTML = '';
-      sensitivityPcts.forEach((pct) => {
+      const sensitivityPcts = Array.from(new Set([
+        Math.max(1, Math.round(investPct * 100 - 5)),
+        Math.max(1, Math.round(investPct * 100)),
+        Math.max(1, Math.round(investPct * 100 + 5)),
+        Math.max(1, Math.round(investPct * 100 + 10)),
+      ])).sort((a, b) => a - b);
+      const regimeLabels = [80, 60, 50, 40, 20, 0];
+      const colors = ['#3b82f6', '#ef4444', '#14b8a6', '#8b5cf6', '#f97316', '#22c55e'];
+      const datasets = sensitivityPcts.map((pct, idx) => {
         const monthly = nettoLoon * (pct / 100);
-        const cells = targets.map((ratio) => {
-          const required = (nettoLoon * (1 - ratio)) / safeMonthlyRate;
-          const y = yearsToReachCapital({
-            targetCapital: required,
-            startCapital,
-            monthlyContribution: monthly,
-            annualReturnPct,
-            maxYears: yearsToPension,
-          });
-          return `<td class="px-3 py-2">${formatYearsOrDash(y)}</td>`;
-        }).join('');
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="px-3 py-2">${pct}% (${formatEUR(monthly)}/mnd)</td>${cells}`;
-        sensBody.appendChild(tr);
+        const values = targets.map((ratio) => {
+          const required = sustainableMonthlyRate > 0 ? (nettoLoon * (1 - ratio)) / sustainableMonthlyRate : Number.POSITIVE_INFINITY;
+          const y = Number.isFinite(required)
+            ? yearsToReachCapital({
+                targetCapital: required,
+                startCapital,
+                monthlyContribution: monthly,
+                annualReturnPct,
+                maxYears: yearsToPension,
+              })
+            : null;
+          return y === null ? yearsToPension : y;
+        });
+        return {
+          label: `${pct}% beleggen`,
+          values,
+          color: colors[idx % colors.length],
+        };
       });
 
-      el('ret-status').textContent = `Status: simulatie op basis van ${formatEUR(monthlyInvest)}/mnd beleggen, ${annualReturnPct.toFixed(1)}% rendement en ${yearsToPension} jaar tot pensioen.`;
+      drawLineChart({
+        canvasId: 'ret-sens-chart',
+        tooltipId: 'ret-sens-tooltip',
+        labels: regimeLabels,
+        datasets,
+        formatValue: (v) => `${v.toFixed(1)} jr`,
+      });
+
+      const lifeMode = indexToInflation ? 'geïndexeerde inkomenskloof' : 'niet-geïndexeerde inkomenskloof';
+      const sustainability = sustainableMonthlyRate > 0
+        ? `Duurzaamheid is berekend als eeuwigdurende opname met ${(sustainableMonthlyRate * 100).toFixed(3)}% maandrendement.`
+        : 'Niet duurzaam bij deze combinatie van rendement en inflatie (reëel rendement ≤ 0%).';
+      const urenPerMaand = urenPerWeek * 52 / 12;
+      el('ret-status').textContent = `Status: ${formatEUR(monthlyInvest)}/mnd beleggen (${(investPct * 100).toFixed(1)}%), ${lifeMode}, ${urenPerMaand.toFixed(0)} u/maand huidig tempo. ${sustainability}`;
     }
 
     function runBuyTime() {
@@ -610,10 +642,14 @@ const metadata = {
       const investPct = Number(el('time-invest-pct').value || 0) / 100;
       const startCapital = Number(el('time-start').value || 0);
       const annualReturnPct = Number(el('time-rend').value || 0);
+      const inflationPct = Number(el('time-infl').value || 0);
       const jaren = Math.max(1, Number(el('time-jaren').value || 1));
+      const showRealValue = el('time-indexeer').checked;
 
       const monthlyInvest = Math.max(0, nettoLoon * investPct);
-      const cap = futureValueFromPlan({ startCapital, monthlyContribution: monthlyInvest, annualReturnPct, years: jaren });
+      const nominalCap = futureValueFromPlan({ startCapital, monthlyContribution: monthlyInvest, annualReturnPct, years: jaren });
+      const deflator = Math.pow(1 + inflationPct / 100, jaren);
+      const cap = showRealValue ? nominalCap / Math.max(0.0001, deflator) : nominalCap;
       const uurloonNu = (nettoLoon * 12) / Math.max(1, urenPerWeek * 52);
       const hoursEquivalent = cap / Math.max(0.0001, uurloonNu);
       const monthsEquivalent = hoursEquivalent / (urenPerWeek * 52 / 12);
@@ -623,7 +659,7 @@ const metadata = {
       el('time-kpi-hours').textContent = `${Math.round(hoursEquivalent).toLocaleString('nl-BE')} u`;
       el('time-kpi-months').textContent = `${monthsEquivalent.toFixed(1)} mnd`;
       el('time-kpi-years').textContent = `${yearsEquivalent.toFixed(1)} jr`;
-      el('time-status').textContent = `Status: je belegd kapitaal vertegenwoordigt ongeveer ${Math.round(hoursEquivalent).toLocaleString('nl-BE')} werkuren (${monthsEquivalent.toFixed(1)} maanden / ${yearsEquivalent.toFixed(1)} jaar).`;
+      el('time-status').textContent = `Status: ${showRealValue ? 'koopkracht in euro van vandaag' : 'nominale waarde op horizon'} ≈ ${Math.round(hoursEquivalent).toLocaleString('nl-BE')} werkuren (${monthsEquivalent.toFixed(1)} maanden / ${yearsEquivalent.toFixed(1)} jaar).`;
     }
 
     el('tv-btnBereken')?.addEventListener('click', runMain);
@@ -668,6 +704,8 @@ const metadata = {
       el('ret-invest-pct').value = 15;
       el('ret-start').value = 10000;
       el('ret-rend').value = 5;
+      el('ret-infl').value = 2;
+      el('ret-indexeer').checked = true;
       el('ret-jaren-pensioen').value = 25;
       runRetirementScaleDown();
     });
@@ -678,6 +716,8 @@ const metadata = {
       el('time-invest-pct').value = 15;
       el('time-start').value = 10000;
       el('time-rend').value = 5;
+      el('time-infl').value = 2;
+      el('time-indexeer').checked = true;
       el('time-jaren').value = 20;
       runBuyTime();
     });
