@@ -26,12 +26,15 @@ const fullTitle =
     : title || siteConfig.name;
 const canonicalURL =
   canonical ?? new URL(Astro.url.pathname, siteConfig.url).toString();
+const baseUrl = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
 ---
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/svg+xml" href={`${baseUrl}favicon.svg`} />
 <link rel="canonical" href={canonicalURL} />
 <meta name="generator" content={Astro.generator} />
 

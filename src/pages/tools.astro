@@ -1,0 +1,382 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const metadata = {
+  title: "Tools — Tijdvermogen",
+  description:
+    "Financiële calculators om scenario's te simuleren: wanneer passief inkomen kan starten en welke inlegmix nodig is.",
+  ignoreTitleTemplate: true,
+};
+---
+
+<BaseLayout {metadata}>
+  <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <p class="mb-3 text-sm uppercase tracking-[0.18em] text-primary">Tools</p>
+    <h1 class="font-serif text-4xl font-semibold sm:text-5xl">Financiële routekaart calculators</h1>
+    <p class="mt-4 max-w-3xl text-muted-foreground">
+      Vier kernscenario's zijn nu geïntegreerd: <strong>wanneer je kan starten met passief inkomen</strong>
+      en <strong>welke combinatie van startkapitaal en maandelijkse inleg je nodig hebt</strong>.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-7xl space-y-10 px-4 pb-20 sm:px-6 lg:px-8">
+    <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
+      <h2 class="font-serif text-3xl font-semibold">1) Passief inkomen simulator</h2>
+      <p class="mt-2 text-muted-foreground">Zoekt automatisch de vroegste haalbare startdatum binnen de opgegeven maximale uitkeringsduur.</p>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+        <label class="text-sm">Huidig kapitaal (€)<input id="tv-startKapitaal" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="25000" /></label>
+        <label class="text-sm">Maandelijkse inleg (€)<input id="tv-maandInleg" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="400" /></label>
+        <label class="text-sm">Doel passief inkomen/maand vandaag (€)<input id="tv-doelUitkeringVandaag" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="500" /></label>
+        <label class="text-sm">Max duur uitkering (jaren)<input id="tv-uitkeringsJaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="30" /></label>
+        <label class="text-sm">Rendement p.j. (%)<input id="tv-rendement" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="5" /></label>
+        <label class="text-sm">Inflatie (%)<input id="tv-inflatie" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="text-sm">Minimaal eindkapitaal (€)<input id="tv-minEindKapitaal" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="0" /></label>
+        <label class="flex items-center gap-2 text-sm"><input id="tv-indexeer" type="checkbox" /> Indexeer uitkering met inflatie</label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="tv-btnBereken" class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white">Simuleer</button>
+        <button id="tv-btnReset" class="rounded-full border border-border px-5 py-2 text-sm font-semibold">Reset</button>
+      </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Start uitkering</p><p id="tv-kpiStart" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Geïnvesteerd kapitaal</p><p id="tv-kpiGeinvesteerd" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Kapitaal bij start</p><p id="tv-kpiKapitaalStart" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Totaal uitgekeerd</p><p id="tv-kpiTotaalUitgekeerd" class="font-mono">—</p></div>
+      </div>
+
+      <div class="mt-6 overflow-x-auto rounded-2xl border border-border">
+        <table class="min-w-full text-sm">
+          <thead class="bg-muted text-left"><tr><th class="px-3 py-2">Scenario</th><th class="px-3 py-2">Rendement</th><th class="px-3 py-2">Start mogelijk?</th><th class="px-3 py-2">Start na</th><th class="px-3 py-2">Startbedrag</th><th class="px-3 py-2">Eindkapitaal</th></tr></thead>
+          <tbody id="tv-scenarioBody"><tr><td class="px-3 py-2 text-muted-foreground" colspan="6">Klik op simuleer.</td></tr></tbody>
+        </table>
+      </div>
+      <p id="tv-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
+    </article>
+
+    <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
+      <h2 class="font-serif text-3xl font-semibold">2) Inleg-verdeler</h2>
+      <p class="mt-2 text-muted-foreground">Jij kiest wanneer de uitkering start. De tool toont combinaties tussen startbedrag en maandelijkse inleg.</p>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+        <label class="text-sm">Start uitkering na (jaren)<input id="mix-startNaJaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="10" /></label>
+        <label class="text-sm">Duur uitkering (jaren)<input id="mix-duurJaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="30" /></label>
+        <label class="text-sm">Doel passief inkomen/maand vandaag (€)<input id="mix-doelVandaag" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="500" /></label>
+        <label class="text-sm">Minimaal eindkapitaal (€)<input id="mix-minEind" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="0" /></label>
+        <label class="text-sm">Rendement p.j. (%)<input id="mix-rendement" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="5" /></label>
+        <label class="text-sm">Inflatie (%)<input id="mix-inflatie" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="flex items-center gap-2 text-sm"><input id="mix-indexeer" type="checkbox" /> Indexeer uitkering met inflatie</label>
+        <label class="text-sm">Aantal opties<input id="mix-stappen" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="11" min="5" /></label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="mix-btn" class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white">Simuleer</button>
+        <button id="mix-btnReset" class="rounded-full border border-border px-5 py-2 text-sm font-semibold">Reset</button>
+      </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Benodigd kapitaal op startdatum</p><p id="mix-kpiKreq" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Max startbedrag (0 inleg)</p><p id="mix-kpiLumpOnly" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Max maandinleg (0 startbedrag)</p><p id="mix-kpiContribOnly" class="font-mono">—</p></div>
+      </div>
+
+      <div class="mt-6 overflow-x-auto rounded-2xl border border-border">
+        <table class="min-w-full text-sm">
+          <thead class="bg-muted text-left"><tr><th class="px-3 py-2">% startbedrag</th><th class="px-3 py-2">Startbedrag vandaag</th><th class="px-3 py-2">Maandelijkse inleg</th><th class="px-3 py-2">Totaal ingelegd t/m start</th></tr></thead>
+          <tbody id="mix-tbody"><tr><td class="px-3 py-2 text-muted-foreground" colspan="4">Klik op simuleer.</td></tr></tbody>
+        </table>
+      </div>
+      <p id="mix-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
+    </article>
+
+    <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
+      <h2 class="font-serif text-3xl font-semibold">3) Inflatie realiteit</h2>
+      <p class="mt-2 text-muted-foreground">Toont het verschil tussen nominale bedragen en reële koopkracht over een gekozen tijdshorizon.</p>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <label class="text-sm">Bedrag vandaag (€)<input id="inf-bedrag" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="2000" /></label>
+        <label class="text-sm">Inflatie (%)<input id="inf-inflatie" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="text-sm">Tijdshorizon (jaren)<input id="inf-jaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="20" min="1" /></label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="inf-btn" class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white">Simuleer</button>
+        <button id="inf-reset" class="rounded-full border border-border px-5 py-2 text-sm font-semibold">Reset</button>
+      </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Nominaal nodig in de toekomst</p><p id="inf-kpi-nominaal" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Reële waarde van hetzelfde nominale bedrag</p><p id="inf-kpi-reeel" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Cumulatieve inflatie</p><p id="inf-kpi-cum" class="font-mono">—</p></div>
+      </div>
+      <p id="inf-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
+    </article>
+
+    <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
+      <h2 class="font-serif text-3xl font-semibold">4) Werkuren-impact door inflatie</h2>
+      <p class="mt-2 text-muted-foreground">Bereken hoeveel extra werkuren nodig zijn als prijzen stijgen en je netto loon gelijk blijft.</p>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <label class="text-sm">Kost van doel (bv. huis) vandaag (€)<input id="work-kost" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="300000" /></label>
+        <label class="text-sm">Netto maandloon (€)<input id="work-loon" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="2500" /></label>
+        <label class="text-sm">Werkuren per maand<input id="work-uren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="160" /></label>
+        <label class="text-sm">Inflatie (%)<input id="work-inflatie" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="text-sm">Tijdshorizon (jaren)<input id="work-jaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="15" min="1" /></label>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="work-btn" class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white">Simuleer</button>
+        <button id="work-reset" class="rounded-full border border-border px-5 py-2 text-sm font-semibold">Reset</button>
+      </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Kost op horizon (nominaal)</p><p id="work-kpi-kost" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Werkuren nu</p><p id="work-kpi-now" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Werkuren op horizon</p><p id="work-kpi-future" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Extra werkuren door inflatie</p><p id="work-kpi-extra" class="font-mono">—</p></div>
+      </div>
+      <p id="work-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
+    </article>
+
+  </section>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const formatEUR = (n) => new Intl.NumberFormat('nl-BE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+    const monthlyRate = (annualPct) => Math.pow(1 + annualPct / 100, 1 / 12) - 1;
+    const monthlyInflationRate = (inflPct) => Math.pow(1 + inflPct / 100, 1 / 12) - 1;
+    const uplift = (todayAmount, startMonth, indexToInflation, inflationPct) => indexToInflation ? todayAmount * Math.pow(1 + monthlyInflationRate(inflationPct), startMonth) : todayAmount;
+
+    function simulate({ initialCapital, monthlyContribution, annualReturnPct, startWithdrawMonth, withdrawalPerMonthToday, withdrawalYears, indexToInflation, inflationPct, minEndCapital }) {
+      const rM = monthlyRate(annualReturnPct);
+      const inflY = inflationPct / 100;
+      const monthsWithdraw = Math.max(1, Math.round(withdrawalYears * 12));
+      const totalMonths = startWithdrawMonth + monthsWithdraw;
+      let cap = Math.max(0, initialCapital);
+      let w = Math.max(0, uplift(withdrawalPerMonthToday, startWithdrawMonth, indexToInflation, inflationPct));
+      let totalPaid = 0;
+      let minCapSeen = cap;
+
+      for (let m = 0; m <= totalMonths; m++) {
+        minCapSeen = Math.min(minCapSeen, cap);
+        cap *= 1 + rM;
+        if (m < startWithdrawMonth) {
+          cap += monthlyContribution;
+        } else if (m < totalMonths) {
+          cap -= w;
+          totalPaid += w;
+          if (indexToInflation && (m - startWithdrawMonth + 1) % 12 === 0) w *= 1 + inflY;
+        }
+      }
+
+      return {
+        ok: minCapSeen >= 0 && cap >= Math.max(0, minEndCapital),
+        endCap: cap,
+        totalPaid,
+        startMonthlyPayout: uplift(withdrawalPerMonthToday, startWithdrawMonth, indexToInflation, inflationPct),
+      };
+    }
+
+    function findEarliestStart(params, maxYears) {
+      const maxMonths = Math.max(1, Math.round(maxYears * 12));
+      for (let start = 0; start <= maxMonths; start++) {
+        const res = simulate({ ...params, startWithdrawMonth: start });
+        if (res.ok) return { startMonth: start, res };
+      }
+      return null;
+    }
+
+    function runMain() {
+      const inp = {
+        initialCapital: Number(el('tv-startKapitaal').value || 0),
+        monthlyContribution: Number(el('tv-maandInleg').value || 0),
+        withdrawalPerMonthToday: Number(el('tv-doelUitkeringVandaag').value || 0),
+        withdrawalYears: Number(el('tv-uitkeringsJaren').value || 1),
+        annualReturnPct: Number(el('tv-rendement').value || 0),
+        inflationPct: Number(el('tv-inflatie').value || 0),
+        minEndCapital: Number(el('tv-minEindKapitaal').value || 0),
+        indexToInflation: el('tv-indexeer').checked,
+      };
+
+      const scenarios = [{ name: 'Pessimistisch', r: inp.annualReturnPct - 2.5 }, { name: 'Basis', r: inp.annualReturnPct }, { name: 'Optimistisch', r: inp.annualReturnPct + 2.5 }];
+      const foundBase = findEarliestStart({ ...inp, annualReturnPct: scenarios[1].r }, inp.withdrawalYears);
+
+      const tb = el('tv-scenarioBody');
+      tb.innerHTML = '';
+      scenarios.forEach((s) => {
+        const f = findEarliestStart({ ...inp, annualReturnPct: s.r }, inp.withdrawalYears);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-3 py-2">${s.name}</td><td class="px-3 py-2">${s.r.toFixed(1)}%</td><td class="px-3 py-2">${f ? 'Ja' : 'Nee'}</td><td class="px-3 py-2">${f ? (f.startMonth / 12).toFixed(1) + ' jr' : '—'}</td><td class="px-3 py-2">${f ? formatEUR(f.res.startMonthlyPayout) : '—'}</td><td class="px-3 py-2">${f ? formatEUR(f.res.endCap) : '—'}</td>`;
+        tb.appendChild(tr);
+      });
+
+      if (!foundBase) {
+        el('tv-status').textContent = 'Status: geen haalbare start binnen de gekozen termijn.';
+        ['tv-kpiStart', 'tv-kpiGeinvesteerd', 'tv-kpiKapitaalStart', 'tv-kpiTotaalUitgekeerd'].forEach((id) => (el(id).textContent = '—'));
+        return;
+      }
+
+      let capAtStart = inp.initialCapital;
+      const rM = monthlyRate(inp.annualReturnPct);
+      for (let m = 0; m < foundBase.startMonth; m++) capAtStart = capAtStart * (1 + rM) + inp.monthlyContribution;
+
+      el('tv-kpiStart').textContent = `${(foundBase.startMonth / 12).toFixed(1)} jaar`;
+      el('tv-kpiGeinvesteerd').textContent = formatEUR(inp.initialCapital + inp.monthlyContribution * foundBase.startMonth);
+      el('tv-kpiKapitaalStart').textContent = formatEUR(capAtStart);
+      el('tv-kpiTotaalUitgekeerd').textContent = formatEUR(foundBase.res.totalPaid);
+      el('tv-status').textContent = `Status: haalbaar, start-uitkering ${formatEUR(foundBase.res.startMonthlyPayout)}/mnd op startdatum.`;
+    }
+
+    function simulateWithdrawalOnly({ capitalAtStart, annualReturnPct, startMonthlyPayout, withdrawalYears, indexDuringWithdrawal, inflationPct, minEndCapital }) {
+      const rM = monthlyRate(annualReturnPct);
+      const inflY = inflationPct / 100;
+      const monthsWithdraw = Math.max(1, Math.round(withdrawalYears * 12));
+      let cap = Math.max(0, capitalAtStart);
+      let w = Math.max(0, startMonthlyPayout);
+      let minCapSeen = cap;
+      for (let m = 0; m < monthsWithdraw; m++) {
+        cap *= 1 + rM;
+        cap -= w;
+        minCapSeen = Math.min(minCapSeen, cap);
+        if (indexDuringWithdrawal && (m + 1) % 12 === 0) w *= 1 + inflY;
+      }
+      return minCapSeen >= 0 && cap >= Math.max(0, minEndCapital);
+    }
+
+    function findRequiredCapitalAtStart(params) {
+      let low = 0;
+      let high = Math.max(1000, params.minEndCapital || 0);
+      while (!simulateWithdrawalOnly({ ...params, capitalAtStart: high })) {
+        high *= 2;
+        if (high > 2e9) break;
+      }
+      for (let i = 0; i < 70; i++) {
+        const mid = (low + high) / 2;
+        if (simulateWithdrawalOnly({ ...params, capitalAtStart: mid })) high = mid;
+        else low = mid;
+      }
+      return high;
+    }
+
+    function runMix() {
+      const startMonth = Math.round(Number(el('mix-startNaJaren').value || 0) * 12);
+      const withdrawalYears = Number(el('mix-duurJaren').value || 1);
+      const todayPayout = Number(el('mix-doelVandaag').value || 0);
+      const minEndCapital = Number(el('mix-minEind').value || 0);
+      const annualReturnPct = Number(el('mix-rendement').value || 0);
+      const inflationPct = Number(el('mix-inflatie').value || 0);
+      const indexToInflation = el('mix-indexeer').checked;
+      const steps = Math.max(5, Number(el('mix-stappen').value || 11));
+
+      const startPayout = uplift(todayPayout, startMonth, indexToInflation, inflationPct);
+      const Kreq = findRequiredCapitalAtStart({ annualReturnPct, startMonthlyPayout: startPayout, withdrawalYears, indexDuringWithdrawal: indexToInflation, inflationPct, minEndCapital });
+      const rM = monthlyRate(annualReturnPct);
+      const grow = Math.pow(1 + rM, startMonth);
+      const A = Math.abs(rM) < 1e-12 ? startMonth : (Math.pow(1 + rM, startMonth) - 1) / rM;
+      const lumpOnly = startMonth === 0 ? Kreq : Kreq / grow;
+      const contribOnly = startMonth === 0 ? 0 : Kreq / A;
+
+      el('mix-kpiKreq').textContent = formatEUR(Kreq);
+      el('mix-kpiLumpOnly').textContent = formatEUR(lumpOnly);
+      el('mix-kpiContribOnly').textContent = `${formatEUR(contribOnly)}/mnd`;
+
+      const tb = el('mix-tbody');
+      tb.innerHTML = '';
+      for (let i = 0; i < steps; i++) {
+        const p = steps === 1 ? 100 : (i / (steps - 1)) * 100;
+        const S0 = (p / 100) * lumpOnly;
+        const needed = Kreq - S0 * grow;
+        const c = startMonth === 0 ? 0 : Math.max(0, needed / A);
+        const totalIn = S0 + c * startMonth;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="px-3 py-2">${p.toFixed(0)}%</td><td class="px-3 py-2">${formatEUR(S0)}</td><td class="px-3 py-2">${formatEUR(c)}/mnd</td><td class="px-3 py-2">${formatEUR(totalIn)}</td>`;
+        tb.appendChild(tr);
+      }
+      el('mix-status').textContent = `Status: berekening uitgevoerd bij rendement ${annualReturnPct.toFixed(1)}%.`;
+    }
+
+
+
+    function runInflationReality() {
+      const bedrag = Number(el('inf-bedrag').value || 0);
+      const infl = Number(el('inf-inflatie').value || 0) / 100;
+      const jaren = Math.max(1, Number(el('inf-jaren').value || 1));
+
+      const nominalNeeded = bedrag * Math.pow(1 + infl, jaren);
+      const realValueSameNominal = bedrag / Math.pow(1 + infl, jaren);
+      const cumulativeInfl = (Math.pow(1 + infl, jaren) - 1) * 100;
+
+      el('inf-kpi-nominaal').textContent = formatEUR(nominalNeeded);
+      el('inf-kpi-reeel').textContent = formatEUR(realValueSameNominal);
+      el('inf-kpi-cum').textContent = `${cumulativeInfl.toFixed(1)}%`;
+      el('inf-status').textContent = `Status: over ${jaren} jaar heb je ${formatEUR(nominalNeeded)} nodig om dezelfde koopkracht als ${formatEUR(bedrag)} vandaag te behouden.`;
+    }
+
+    function runWorkHoursImpact() {
+      const kostVandaag = Number(el('work-kost').value || 0);
+      const nettoLoon = Number(el('work-loon').value || 0);
+      const urenPerMaand = Number(el('work-uren').value || 1);
+      const infl = Number(el('work-inflatie').value || 0) / 100;
+      const jaren = Math.max(1, Number(el('work-jaren').value || 1));
+
+      const uurloon = nettoLoon / Math.max(1, urenPerMaand);
+      const futureCost = kostVandaag * Math.pow(1 + infl, jaren);
+      const hoursNow = kostVandaag / uurloon;
+      const hoursFuture = futureCost / uurloon;
+      const extraHours = hoursFuture - hoursNow;
+
+      el('work-kpi-kost').textContent = formatEUR(futureCost);
+      el('work-kpi-now').textContent = `${hoursNow.toFixed(0)} u`;
+      el('work-kpi-future').textContent = `${hoursFuture.toFixed(0)} u`;
+      el('work-kpi-extra').textContent = `${extraHours.toFixed(0)} u`;
+      el('work-status').textContent = `Status: bij gelijkblijvend netto loon vraagt inflatie ${extraHours.toFixed(0)} extra werkuren over ${jaren} jaar.`;
+    }
+
+    el('tv-btnBereken')?.addEventListener('click', runMain);
+    el('mix-btn')?.addEventListener('click', runMix);
+
+    el('inf-btn')?.addEventListener('click', runInflationReality);
+    el('work-btn')?.addEventListener('click', runWorkHoursImpact);
+
+    el('tv-btnReset')?.addEventListener('click', () => {
+      el('tv-startKapitaal').value = 25000;
+      el('tv-maandInleg').value = 400;
+      el('tv-doelUitkeringVandaag').value = 500;
+      el('tv-uitkeringsJaren').value = 30;
+      el('tv-rendement').value = 5;
+      el('tv-inflatie').value = 2;
+      el('tv-minEindKapitaal').value = 0;
+      el('tv-indexeer').checked = false;
+      runMain();
+    });
+
+    el('inf-reset')?.addEventListener('click', () => {
+      el('inf-bedrag').value = 2000;
+      el('inf-inflatie').value = 2;
+      el('inf-jaren').value = 20;
+      runInflationReality();
+    });
+    el('work-reset')?.addEventListener('click', () => {
+      el('work-kost').value = 300000;
+      el('work-loon').value = 2500;
+      el('work-uren').value = 160;
+      el('work-inflatie').value = 2;
+      el('work-jaren').value = 15;
+      runWorkHoursImpact();
+    });
+
+    el('mix-btnReset')?.addEventListener('click', () => {
+      el('mix-startNaJaren').value = 10;
+      el('mix-duurJaren').value = 30;
+      el('mix-doelVandaag').value = 500;
+      el('mix-minEind').value = 0;
+      el('mix-rendement').value = 5;
+      el('mix-inflatie').value = 2;
+      el('mix-indexeer').checked = false;
+      el('mix-stappen').value = 11;
+      runMix();
+    });
+  </script>
+</BaseLayout>

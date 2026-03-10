@@ -28,6 +28,10 @@ export async function getStaticPaths() {
 
 const { category, posts } = Astro.props;
 
+const baseUrl = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+
 const metadata = {
   title: `Category: ${category}`,
   description: `Articles in the ${category} category.`,
@@ -50,7 +54,7 @@ const metadata = {
       />
 
       <div class="mb-8 text-center">
-        <a href="/blog" class="text-primary hover:underline">← Back to blog</a>
+        <a href={`${baseUrl}blog`} class="text-primary hover:underline">← Back to blog</a>
       </div>
 
       <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
