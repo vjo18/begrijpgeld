@@ -209,10 +209,31 @@ const metadata = {
       </div>
 
       <div class="mt-6 grid gap-4 md:grid-cols-4">
+<<<<<<< HEAD
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Kapitaal op horizon</p><p id="time-kpi-cap" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Equivalent in werkuren</p><p id="time-kpi-hours" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Equivalent in werkmaanden</p><p id="time-kpi-months" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Equivalent in werkjaren</p><p id="time-kpi-years" class="font-mono">—</p></div>
+=======
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Totaal belegd bedrag</p><p id="time-kpi-invested-eur" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Belegd equivalent in werkuren</p><p id="time-kpi-invested-hours" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Belegd equivalent in werkmaanden</p><p id="time-kpi-invested-months" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Belegd equivalent in werkjaren</p><p id="time-kpi-invested-years" class="font-mono">—</p></div>
+      </div>
+
+      <div class="mt-4 grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon (euro)</p><p id="time-kpi-cap" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon in werkuren</p><p id="time-kpi-hours" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon in werkmaanden</p><p id="time-kpi-months" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Waarde op horizon in werkjaren</p><p id="time-kpi-years" class="font-mono">—</p></div>
+      </div>
+
+      <div class="mt-4 grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst (euro)</p><p id="time-kpi-gain-eur" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst in werkuren</p><p id="time-kpi-gain-hours" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst in werkmaanden</p><p id="time-kpi-gain-months" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Netto winst in werkjaren</p><p id="time-kpi-gain-years" class="font-mono">—</p></div>
+>>>>>>> codex/update-inflation-calculator-for-future-value-i6j7jy
       </div>
 
       <p id="time-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
@@ -647,19 +668,54 @@ const metadata = {
       const showRealValue = el('time-indexeer').checked;
 
       const monthlyInvest = Math.max(0, nettoLoon * investPct);
+<<<<<<< HEAD
+=======
+      const months = Math.max(1, Math.round(jaren * 12));
+      const investedFromSalary = monthlyInvest * months;
+      const totalInvested = Math.max(0, startCapital) + investedFromSalary;
+
+>>>>>>> codex/update-inflation-calculator-for-future-value-i6j7jy
       const nominalCap = futureValueFromPlan({ startCapital, monthlyContribution: monthlyInvest, annualReturnPct, years: jaren });
       const deflator = Math.pow(1 + inflationPct / 100, jaren);
       const cap = showRealValue ? nominalCap / Math.max(0.0001, deflator) : nominalCap;
       const uurloonNu = (nettoLoon * 12) / Math.max(1, urenPerWeek * 52);
+<<<<<<< HEAD
       const hoursEquivalent = cap / Math.max(0.0001, uurloonNu);
       const monthsEquivalent = hoursEquivalent / (urenPerWeek * 52 / 12);
       const yearsEquivalent = hoursEquivalent / (urenPerWeek * 52);
+=======
+
+      const investedHours = totalInvested / Math.max(0.0001, uurloonNu);
+      const investedMonths = investedHours / (urenPerWeek * 52 / 12);
+      const investedYears = investedHours / (urenPerWeek * 52);
+
+      const hoursEquivalent = cap / Math.max(0.0001, uurloonNu);
+      const monthsEquivalent = hoursEquivalent / (urenPerWeek * 52 / 12);
+      const yearsEquivalent = hoursEquivalent / (urenPerWeek * 52);
+      const gainEur = cap - totalInvested;
+      const gainHours = hoursEquivalent - investedHours;
+      const gainMonths = monthsEquivalent - investedMonths;
+      const gainYears = yearsEquivalent - investedYears;
+
+      el('time-kpi-invested-eur').textContent = formatEUR(totalInvested);
+      el('time-kpi-invested-hours').textContent = `${Math.round(investedHours).toLocaleString('nl-BE')} u`;
+      el('time-kpi-invested-months').textContent = `${investedMonths.toFixed(1)} mnd`;
+      el('time-kpi-invested-years').textContent = `${investedYears.toFixed(1)} jr`;
+>>>>>>> codex/update-inflation-calculator-for-future-value-i6j7jy
 
       el('time-kpi-cap').textContent = formatEUR(cap);
       el('time-kpi-hours').textContent = `${Math.round(hoursEquivalent).toLocaleString('nl-BE')} u`;
       el('time-kpi-months').textContent = `${monthsEquivalent.toFixed(1)} mnd`;
       el('time-kpi-years').textContent = `${yearsEquivalent.toFixed(1)} jr`;
+<<<<<<< HEAD
       el('time-status').textContent = `Status: ${showRealValue ? 'koopkracht in euro van vandaag' : 'nominale waarde op horizon'} ≈ ${Math.round(hoursEquivalent).toLocaleString('nl-BE')} werkuren (${monthsEquivalent.toFixed(1)} maanden / ${yearsEquivalent.toFixed(1)} jaar).`;
+=======
+      el('time-kpi-gain-eur').textContent = formatEUR(gainEur);
+      el('time-kpi-gain-hours').textContent = `${Math.round(gainHours).toLocaleString('nl-BE')} u`;
+      el('time-kpi-gain-months').textContent = `${gainMonths.toFixed(1)} mnd`;
+      el('time-kpi-gain-years').textContent = `${gainYears.toFixed(1)} jr`;
+      el('time-status').textContent = `Status: je belegt ${formatEUR(monthlyInvest)}/mnd (${(investPct * 100).toFixed(1)}%), in totaal ${formatEUR(totalInvested)} (${Math.round(investedHours).toLocaleString('nl-BE')} u). Dat groeit naar ${formatEUR(cap)} of ${Math.round(hoursEquivalent).toLocaleString('nl-BE')} u op horizon (${showRealValue ? 'koopkracht van vandaag' : 'nominale waarde'}). Netto winst: ${formatEUR(gainEur)} (${Math.round(gainHours).toLocaleString('nl-BE')} u).`;
+>>>>>>> codex/update-inflation-calculator-for-future-value-i6j7jy
     }
 
     el('tv-btnBereken')?.addEventListener('click', runMain);
