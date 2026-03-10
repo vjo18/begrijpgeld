@@ -111,18 +111,24 @@ const metadata = {
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Reële waarde van hetzelfde nominale bedrag</p><p id="inf-kpi-reeel" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Cumulatieve inflatie</p><p id="inf-kpi-cum" class="font-mono">—</p></div>
       </div>
+
+      <div class="mt-6 relative">
+        <canvas id="inf-chart" class="h-72 w-full rounded-2xl border border-border bg-background"></canvas>
+        <div id="inf-tooltip" class="pointer-events-none absolute hidden rounded-xl border border-border bg-background/95 px-3 py-2 text-xs shadow-lg"></div>
+      </div>
       <p id="inf-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
     </article>
 
     <article class="rounded-3xl border border-border bg-card p-6 md:p-8">
       <h2 class="font-serif text-3xl font-semibold">4) Werkuren-impact door inflatie</h2>
-      <p class="mt-2 text-muted-foreground">Bereken hoeveel extra werkuren nodig zijn als prijzen stijgen en je netto loon gelijk blijft.</p>
+      <p class="mt-2 text-muted-foreground">Bereken hoeveel extra werkuren nodig zijn op basis van aparte looninflatie en asset-inflatie.</p>
 
       <div class="mt-6 grid gap-4 md:grid-cols-3">
         <label class="text-sm">Kost van doel (bv. huis) vandaag (€)<input id="work-kost" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="300000" /></label>
         <label class="text-sm">Netto maandloon (€)<input id="work-loon" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="2500" /></label>
-        <label class="text-sm">Werkuren per maand<input id="work-uren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="160" /></label>
-        <label class="text-sm">Inflatie (%)<input id="work-inflatie" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="text-sm">Werkuren per week<input id="work-uren-week" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="38" /></label>
+        <label class="text-sm">Inflatie loon (%)<input id="work-loon-inflatie" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="2" /></label>
+        <label class="text-sm">Inflatie asset (%)<input id="work-asset-inflatie" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" step="0.1" value="4" /></label>
         <label class="text-sm">Tijdshorizon (jaren)<input id="work-jaren" class="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2" type="number" value="15" min="1" /></label>
       </div>
 
@@ -132,10 +138,15 @@ const metadata = {
       </div>
 
       <div class="mt-6 grid gap-4 md:grid-cols-4">
-        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Kost op horizon (nominaal)</p><p id="work-kpi-kost" class="font-mono">—</p></div>
-        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Werkuren nu</p><p id="work-kpi-now" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Kost op horizon</p><p id="work-kpi-kost" class="font-mono">—</p></div>
         <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Werkuren op horizon</p><p id="work-kpi-future" class="font-mono">—</p></div>
-        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Extra werkuren door inflatie</p><p id="work-kpi-extra" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Extra t.o.v. nu</p><p id="work-kpi-extra" class="font-mono">—</p></div>
+        <div class="rounded-2xl border border-border p-4"><p class="text-xs text-muted-foreground">Equivalent in tijd</p><p id="work-kpi-equivalent" class="font-mono">—</p></div>
+      </div>
+
+      <div class="mt-6 relative">
+        <canvas id="work-chart" class="h-72 w-full rounded-2xl border border-border bg-background"></canvas>
+        <div id="work-tooltip" class="pointer-events-none absolute hidden rounded-xl border border-border bg-background/95 px-3 py-2 text-xs shadow-lg"></div>
       </div>
       <p id="work-status" class="mt-3 text-sm text-muted-foreground">Status: nog niet uitgevoerd.</p>
     </article>
@@ -298,6 +309,84 @@ const metadata = {
     }
 
 
+    function drawLineChart({ canvasId, tooltipId, labels, datasets, formatValue }) {
+      const canvas = el(canvasId);
+      const tooltip = el(tooltipId);
+      if (!canvas || !tooltip || labels.length < 2) return;
+
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.scale(dpr, dpr);
+
+      const all = datasets.flatMap((d) => d.values);
+      let minY = Math.min(...all);
+      let maxY = Math.max(...all);
+      if (minY === maxY) maxY = minY + 1;
+
+      const pad = { top: 18, right: 20, bottom: 36, left: 58 };
+      const plotW = w - pad.left - pad.right;
+      const plotH = h - pad.top - pad.bottom;
+      const xTo = (i) => pad.left + (i / (labels.length - 1)) * plotW;
+      const yTo = (v) => pad.top + (1 - (v - minY) / (maxY - minY)) * plotH;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(148,163,184,.35)';
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (i / 4) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = 'rgba(148,163,184,.8)';
+      ctx.font = '12px system-ui';
+      for (let i = 0; i <= 4; i++) {
+        const v = maxY - (i / 4) * (maxY - minY);
+        ctx.fillText(formatValue(v), 6, pad.top + (i / 4) * plotH + 4);
+      }
+
+      const tickStep = Math.max(1, Math.floor(labels.length / 8));
+      for (let i = 0; i < labels.length; i += tickStep) {
+        const x = xTo(i);
+        ctx.fillText(String(labels[i]), x - 8, h - 12);
+      }
+
+      datasets.forEach((ds) => {
+        ctx.strokeStyle = ds.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ds.values.forEach((v, i) => {
+          const x = xTo(i);
+          const y = yTo(v);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+
+      canvas.onmousemove = (evt) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = evt.clientX - rect.left;
+        if (x < pad.left || x > w - pad.right) {
+          tooltip.classList.add('hidden');
+          return;
+        }
+        const idx = Math.max(0, Math.min(labels.length - 1, Math.round(((x - pad.left) / plotW) * (labels.length - 1))));
+        const rows = datasets.map((d) => `<div><span style="color:${d.color}">●</span> ${d.label}: <strong>${formatValue(d.values[idx])}</strong></div>`).join('');
+        tooltip.innerHTML = `<div><strong>Jaar ${labels[idx]}</strong></div>${rows}`;
+        tooltip.classList.remove('hidden');
+        tooltip.style.left = `${Math.min(w - 180, x + 12)}px`;
+        tooltip.style.top = `${Math.max(8, evt.clientY - rect.top - 10)}px`;
+      };
+      canvas.onmouseleave = () => tooltip.classList.add('hidden');
+    }
 
     function runInflationReality() {
       const bedrag = Number(el('inf-bedrag').value || 0);
@@ -305,33 +394,68 @@ const metadata = {
       const jaren = Math.max(1, Number(el('inf-jaren').value || 1));
 
       const nominalNeeded = bedrag * Math.pow(1 + infl, jaren);
-      const realValueSameNominal = bedrag / Math.pow(1 + infl, jaren);
       const cumulativeInfl = (Math.pow(1 + infl, jaren) - 1) * 100;
 
       el('inf-kpi-nominaal').textContent = formatEUR(nominalNeeded);
-      el('inf-kpi-reeel').textContent = formatEUR(realValueSameNominal);
+      el('inf-kpi-reeel').textContent = formatEUR(bedrag);
       el('inf-kpi-cum').textContent = `${cumulativeInfl.toFixed(1)}%`;
       el('inf-status').textContent = `Status: over ${jaren} jaar heb je ${formatEUR(nominalNeeded)} nodig om dezelfde koopkracht als ${formatEUR(bedrag)} vandaag te behouden.`;
+
+      const labels = Array.from({ length: jaren + 1 }, (_, i) => i);
+      const nominalSeries = labels.map((yr) => bedrag * Math.pow(1 + infl, yr));
+      const realSeries = labels.map(() => bedrag);
+      drawLineChart({
+        canvasId: 'inf-chart',
+        tooltipId: 'inf-tooltip',
+        labels,
+        datasets: [
+          { label: 'Nominaal nodig', values: nominalSeries, color: '#3b82f6' },
+          { label: 'Reële koopkracht vandaag', values: realSeries, color: '#22c55e' },
+        ],
+        formatValue: (v) => formatEUR(v),
+      });
     }
 
     function runWorkHoursImpact() {
       const kostVandaag = Number(el('work-kost').value || 0);
       const nettoLoon = Number(el('work-loon').value || 0);
-      const urenPerMaand = Number(el('work-uren').value || 1);
-      const infl = Number(el('work-inflatie').value || 0) / 100;
+      const urenPerWeek = Number(el('work-uren-week').value || 1);
+      const loonInfl = Number(el('work-loon-inflatie').value || 0) / 100;
+      const assetInfl = Number(el('work-asset-inflatie').value || 0) / 100;
       const jaren = Math.max(1, Number(el('work-jaren').value || 1));
 
-      const uurloon = nettoLoon / Math.max(1, urenPerMaand);
-      const futureCost = kostVandaag * Math.pow(1 + infl, jaren);
-      const hoursNow = kostVandaag / uurloon;
-      const hoursFuture = futureCost / uurloon;
+      const uurloonNu = (nettoLoon * 12) / Math.max(1, urenPerWeek * 52);
+      const futureCost = kostVandaag * Math.pow(1 + assetInfl, jaren);
+      const futureHourlyWage = uurloonNu * Math.pow(1 + loonInfl, jaren);
+      const hoursNow = kostVandaag / uurloonNu;
+      const hoursFuture = futureCost / Math.max(0.0001, futureHourlyWage);
       const extraHours = hoursFuture - hoursNow;
+      const monthsEquivalent = hoursFuture / (urenPerWeek * 52 / 12);
+      const yearsEquivalent = hoursFuture / (urenPerWeek * 52);
 
       el('work-kpi-kost').textContent = formatEUR(futureCost);
-      el('work-kpi-now').textContent = `${hoursNow.toFixed(0)} u`;
       el('work-kpi-future').textContent = `${hoursFuture.toFixed(0)} u`;
       el('work-kpi-extra').textContent = `${extraHours.toFixed(0)} u`;
-      el('work-status').textContent = `Status: bij gelijkblijvend netto loon vraagt inflatie ${extraHours.toFixed(0)} extra werkuren over ${jaren} jaar.`;
+      el('work-kpi-equivalent').textContent = `${monthsEquivalent.toFixed(1)} mnd · ${yearsEquivalent.toFixed(1)} jr`;
+      el('work-status').textContent = `Status: op horizon vraagt het doel ${hoursFuture.toFixed(0)} werkuren (${monthsEquivalent.toFixed(1)} maanden / ${yearsEquivalent.toFixed(1)} jaar werken aan dit tempo).`;
+
+      const labels = Array.from({ length: jaren + 1 }, (_, i) => i);
+      const hoursSeries = labels.map((yr) => {
+        const c = kostVandaag * Math.pow(1 + assetInfl, yr);
+        const w = uurloonNu * Math.pow(1 + loonInfl, yr);
+        return c / Math.max(0.0001, w);
+      });
+      const baselineSeries = labels.map(() => hoursNow);
+      drawLineChart({
+        canvasId: 'work-chart',
+        tooltipId: 'work-tooltip',
+        labels,
+        datasets: [
+          { label: 'Werkuren nodig', values: hoursSeries, color: '#f97316' },
+          { label: 'Werkuren nu (baseline)', values: baselineSeries, color: '#8b5cf6' },
+        ],
+        formatValue: (v) => `${Math.round(v).toLocaleString('nl-BE')} u`,
+      });
     }
 
     el('tv-btnBereken')?.addEventListener('click', runMain);
@@ -361,8 +485,9 @@ const metadata = {
     el('work-reset')?.addEventListener('click', () => {
       el('work-kost').value = 300000;
       el('work-loon').value = 2500;
-      el('work-uren').value = 160;
-      el('work-inflatie').value = 2;
+      el('work-uren-week').value = 38;
+      el('work-loon-inflatie').value = 2;
+      el('work-asset-inflatie').value = 4;
       el('work-jaren').value = 15;
       runWorkHoursImpact();
     });
